@@ -1,3 +1,4 @@
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -11,7 +12,7 @@ typedef struct instruction_set{
 
 }instruction_set;
 
-// All Individual Functions 
+// All Individual Functions
 static bool lxi_b(_8085MP *Machine);
 static bool hlt(_8085MP *Machine);
 static bool nop();
@@ -129,13 +130,13 @@ static data ALU(_8085MP *Machine,data operand2, bool add, size_t offSet){
         // 2's Complement of Operand 2 then add
         operand2 = (operand2 ^ 0xff) + 0x01;
     }
-    // Normal Addition And Also Check All Flags 
+    // Normal Addition And Also Check All Flags
     // Perform Addition Via Custom Adder
     data carry = 0x00;
     data ac = 0x00;
     data sum = 0x00;
     data parity = 0xff;
-    data operand1 = (!offSet) ? Machine->a :(*((data *)((char *)Machine + offSet))); 
+    data operand1 = (!offSet) ? Machine->a :(*((data *)((char *)Machine + offSet)));
     for (int j = 0;  j < 8;  ++j){
         int op1nBit = 0 != (operand1 & (1 << j));
         int op2nBit = 0 != (operand2 & (1 << j));
@@ -152,17 +153,17 @@ static data ALU(_8085MP *Machine,data operand2, bool add, size_t offSet){
         (*((data *)((char *)Machine + offSet))) = sum;
     // Carry Flag Check
      (carry && !offSet) ? setCarry(Machine) : resetCarry(Machine);
-    
+
     //AC Flag Check
     (ac) ? setAC(Machine) : resetAC(Machine);
-     
+
      // Parity Check
      (parity) ? setParity(Machine) : resetParity(Machine);
-     
+
      // Zero Flag Check
      (sum) ? resetZero(Machine) : setZero(Machine);
      // Sign Flag
-     (sum & 0x80) ? setSign(Machine) : resetSign(Machine); 
+     (sum & 0x80) ? setSign(Machine) : resetSign(Machine);
      return sum;
 }
 
@@ -170,7 +171,7 @@ static data ALU(_8085MP *Machine,data operand2, bool add, size_t offSet){
 // static void set_bc_pair()
 // Instruction Sets With Indexing of HexCodes :)
 static instruction_set allInstruction[0xff] = {
-    {hlt}, //0x00 change it with nop 
+    {hlt}, //0x00 change it with nop
     {lxi_b}, //0x01
     {stax_b}, //0x02
     {inx_b}, //0x03
@@ -181,7 +182,7 @@ static instruction_set allInstruction[0xff] = {
     {invalid},//0x08
     {dad_b},//0x09
     {ldax_b},//0x0A
-    {dcx_b},  
+    {dcx_b},
     {inr_c},
     {dcr_c},
     {mvi_c},
@@ -253,7 +254,7 @@ static bool dad_b(_8085MP *Machine){
 }
 static bool ldax_b(_8085MP *Machine){
     Machine->a = Machine->memory[pair_data_get(Machine->b, Machine->c)];
-    return true;    
+    return true;
 }
 static bool dcx_b(_8085MP *Machine){
     // Does Not Affect Any Flag
@@ -263,7 +264,7 @@ static bool dcx_b(_8085MP *Machine){
 static bool inr_c(_8085MP *Machine){
     ALU(Machine, 0x01, true, OFFSETOF(_8085MP, c));
     return true;
-}   
+}
 static bool dcr_c(_8085MP *Machine){
     ALU(Machine, 0x01, false, OFFSETOF(_8085MP, c));
     return true;
@@ -324,7 +325,7 @@ static bool dad_d(_8085MP *Machine){
 }
 static bool ldax_d(_8085MP *Machine){
     Machine->a = Machine->memory[pair_data_get(Machine->d, Machine->e)];
-    return true;    
+    return true;
 }
 static bool dcx_d(_8085MP *Machine){
     // Does Not Affect Any Flag
@@ -335,7 +336,7 @@ static bool dcx_d(_8085MP *Machine){
 static bool inr_e(_8085MP *Machine){
     ALU(Machine, 0x01, true, OFFSETOF(_8085MP, e));
     return true;
-}   
+}
 static bool dcr_e(_8085MP *Machine){
     ALU(Machine, 0x01, false, OFFSETOF(_8085MP, e));
     return true;
@@ -345,7 +346,7 @@ static bool mvi_e(_8085MP *Machine){
     return true;
 }
 static bool rar(_8085MP *Machine){
-    data carryFlag = getCarry(Machine); 
+    data carryFlag = getCarry(Machine);
     if(Machine->a & 0x01)
         setCarry(Machine);
     else
@@ -354,7 +355,7 @@ static bool rar(_8085MP *Machine){
     Machine->a |= (carryFlag) ? 0x80 : 0x00;
     return true;
 }
-// RIM -> NEXT UPDATE 
+// RIM -> NEXT UPDATE
 static bool rim(_8085MP *Machine){
     return true;
 }
@@ -402,7 +403,7 @@ static bool hlt(_8085MP *Machine){
     return false;
 }
 
-// Helper Function 
+// Helper Function
 static void starttup(_8085MP *Machine, address start){
     Machine->instruction_register = start;
     Machine->pc = start;
@@ -412,7 +413,7 @@ static data getoperand(_8085MP *Machine){
 }
 static address pair_data_get(data higher, data lower){
     address returnValue = higher;
-    returnValue <<= 8; // 8 Bit Shifted 
+    returnValue <<= 8; // 8 Bit Shifted
     returnValue |= lower;
     return returnValue;
 }
@@ -433,7 +434,7 @@ static bool pairAdder(_8085MP *Machine, data higher, data lower){
     else
         resetCarry(Machine);
     return true;
-    
+
 }
 
 // Public Exposed Function
@@ -450,15 +451,16 @@ _8085MP* createNewMachine(){
     newMachine->pc = 0;
     newMachine->sp = 0;
     newMachine->memory = (data *)calloc(10000, sizeof(data));
-    return newMachine;    
+    return newMachine;
 }
 
 bool execute(_8085MP *machine, address start_address){
     starttup(machine, start_address);
     bool ranSuccessfully = false;
-    do{ 
+    do{
         ranSuccessfully = allInstruction[machine->memory[machine->instruction_register]].func(machine);
         machine->instruction_register = ++machine->pc;
+        printf("%x\n", machine->pc);
     }while(ranSuccessfully);
 }
 
@@ -467,14 +469,10 @@ bool execute(_8085MP *machine, address start_address){
 int main(){
     _8085MP *newMachine = createNewMachine();
     //newMachine->memory[0x0fff] = 0x07;
-    newMachine->memory[0] = 0x01;
-    newMachine->memory[1] = 0xff;  
-    newMachine->memory[2] = 0x07;
-    // newMachine->memory[3] = 0x09;
-    newMachine->memory[3] = 0x05;
-    newMachine->memory[4] = 0x00;
+    newMachine->memory[0] = 0x01;     //    lxi b,
+    newMachine->memory[1] = 0xff;
+
     execute(newMachine, 0x00);
-    printf("%x", newMachine->b);
     return 0;
 }
 
