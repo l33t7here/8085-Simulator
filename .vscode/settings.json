@@ -1,0 +1,7 @@
+{
+    "nuxt.isNuxtApp": false,
+    "files.associations": {
+        "string.h": "c",
+        "limits": "cpp"
+    }
+}
