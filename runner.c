@@ -10,7 +10,7 @@ typedef struct instruction_set{
 
 }instruction_set;
 
-// All Individual Functions 
+// All Individual Functions
 static bool lxi_b(_8085MP *Machine);
 static bool hlt(_8085MP *Machine);
 static bool nop();
@@ -50,6 +50,146 @@ static bool inr_h(_8085MP *Machine);
 static bool dcr_h(_8085MP *Machine);
 static bool mvi_h(_8085MP *Machine);
 static bool daa(_8085MP *Machine);
+static bool dad_h(_8085MP *Machine);
+static bool lhld(_8085MP *Machine);
+static bool dcx_h(_8085MP *Machine);
+static bool inr_l(_8085MP *Machine);
+static bool dcr_l(_8085MP *Machine);
+static bool mvi_l(_8085MP *Machine);
+static bool cma(_8085MP *Machine);
+static bool sim(_8085MP *Machine);
+static bool lxi_sp(_8085MP *Machine);
+static bool inx_sp(_8085MP *Machine);
+static bool inr_sp(_8085MP *Machine);
+static bool dcr_m(_8085MP *Machine);
+static bool mvi_m(_8085MP *Machine);
+static bool stc(_8085MP *Machine);
+static bool dad_sp(_8085MP *Machine);
+static bool lda(_8085MP *Machine);
+static bool dcx_sp(_8085MP *Machine);
+static bool inr_a(_8085MP *Machine);
+static bool dcr_a(_8085MP *Machine);
+static bool mvi_a(_8085MP *Machine);
+static bool cmc(_8085MP *Machine);
+static bool mov_b_b(_8085MP *Machine);
+static bool mov_b_c(_8085MP *Machine);
+static bool mov_b_d(_8085MP *Machine);
+static bool mov_b_e(_8085MP *Machine);
+static bool mov_b_h(_8085MP *Machine);
+static bool mov_b_l(_8085MP *Machine);
+static bool mov_b_m(_8085MP *Machine);
+static bool mov_b_a(_8085MP *Machine);
+static bool mov_c_b(_8085MP *Machine);
+static bool mov_c_c(_8085MP *Machine);
+static bool mov_c_d(_8085MP *Machine);
+static bool mov_c_e(_8085MP *Machine);
+static bool mov_c_h(_8085MP *Machine);
+static bool mov_c_l(_8085MP *Machine);
+static bool mov_c_m(_8085MP *Machine);
+static bool mov_d_b(_8085MP *Machine);
+static bool mov_d_c(_8085MP *Machine);
+static bool mov_d_d(_8085MP *Machine);
+static bool mov_d_e(_8085MP *Machine);
+static bool mov_d_h(_8085MP *Machine);
+static bool mov_d_l(_8085MP *Machine);
+static bool mov_d_m(_8085MP *Machine);
+static bool mov_d_a(_8085MP *Machine);
+static bool mov_e_b(_8085MP *Machine);
+static bool mov_e_c(_8085MP *Machine);
+static bool mov_e_d(_8085MP *Machine);
+static bool mov_e_e(_8085MP *Machine);
+static bool mov_e_h(_8085MP *Machine);
+static bool mov_e_l(_8085MP *Machine);
+static bool mov_e_m(_8085MP *Machine);
+static bool mov_e_a(_8085MP *Machine);
+static bool mov_h_b(_8085MP *Machine);
+static bool mov_h_c(_8085MP *Machine);
+static bool mov_h_d(_8085MP *Machine);
+static bool mov_h_e(_8085MP *Machine);
+static bool mov_h_h(_8085MP *Machine);
+static bool mov_h_l(_8085MP *Machine);
+static bool mov_h_m(_8085MP *Machine);
+static bool mov_h_a(_8085MP *Machine);
+static bool mov_l_b(_8085MP *Machine);
+static bool mov_l_c(_8085MP *Machine);
+static bool mov_l_d(_8085MP *Machine);
+static bool mov_l_e(_8085MP *Machine);
+static bool mov_l_h(_8085MP *Machine);
+static bool mov_l_l(_8085MP *Machine);
+static bool mov_l_m(_8085MP *Machine);
+static bool mov_l_a(_8085MP *Machine);
+static bool mov_m_b(_8085MP *Machine);
+static bool mov_m_c(_8085MP *Machine);
+static bool mov_m_d(_8085MP *Machine);
+static bool mov_m_e(_8085MP *Machine);
+static bool mov_m_h(_8085MP *Machine);
+static bool mov_m_l(_8085MP *Machine);
+static bool mov_m_a(_8085MP *Machine);
+static bool mov_a_b(_8085MP *Machine);
+static bool mov_a_c(_8085MP *Machine);
+static bool mov_a_d(_8085MP *Machine);
+static bool mov_a_e(_8085MP *Machine);
+static bool mov_a_h(_8085MP *Machine);
+static bool mov_a_l(_8085MP *Machine);
+static bool mov_a_m(_8085MP *Machine);
+static bool mov_a_a(_8085MP *Machine);
+static bool add_b(_8085MP *Machine);
+static bool add_c(_8085MP *Machine);
+static bool add_d(_8085MP *Machine);
+static bool add_e(_8085MP *Machine);
+static bool add_h(_8085MP *Machine);
+static bool add_l(_8085MP *Machine);
+static bool add_m(_8085MP *Machine);
+static bool add_a(_8085MP *Machine);
+static bool adc_b(_8085MP *Machine);
+static bool adc_c(_8085MP *Machine);
+static bool adc_d(_8085MP *Machine);
+static bool adc_e(_8085MP *Machine);
+static bool adc_h(_8085MP *Machine);
+static bool adc_l(_8085MP *Machine);
+static bool adc_m(_8085MP *Machine);
+static bool adc_a(_8085MP *Machine);
+static bool sub_b(_8085MP *Machine);
+static bool sub_c(_8085MP *Machine);
+static bool sub_d(_8085MP *Machine);
+static bool sub_e(_8085MP *Machine);
+static bool sub_h(_8085MP *Machine);
+static bool sub_l(_8085MP *Machine);
+static bool sub_m(_8085MP *Machine);
+static bool sub_a(_8085MP *Machine);
+static bool sbb_b(_8085MP *Machine);
+static bool sbb_c(_8085MP *Machine);
+static bool sbb_d(_8085MP *Machine);
+static bool sbb_e(_8085MP *Machine);
+static bool sbb_h(_8085MP *Machine);
+static bool sbb_l(_8085MP *Machine);
+static bool sbb_m(_8085MP *Machine);
+static bool sbb_a(_8085MP *Machine);
+static bool ana_b(_8085MP *Machine);
+static bool ana_c(_8085MP *Machine);
+static bool ana_d(_8085MP *Machine);
+static bool ana_e(_8085MP *Machine);
+static bool ana_h(_8085MP *Machine);
+static bool ana_l(_8085MP *Machine);
+static bool ana_m(_8085MP *Machine);
+static bool ana_a(_8085MP *Machine);
+static bool xra_b(_8085MP *Machine);
+static bool xra_c(_8085MP *Machine);
+static bool xra_d(_8085MP *Machine);
+static bool xra_e(_8085MP *Machine);
+static bool xra_h(_8085MP *Machine);
+static bool xra_l(_8085MP *Machine);
+static bool xra_m(_8085MP *Machine);
+static bool xra_a(_8085MP *Machine);
+static bool ora_b(_8085MP *Machine);
+static bool ora_c(_8085MP *Machine);
+static bool ora_d(_8085MP *Machine);
+static bool ora_e(_8085MP *Machine);
+static bool ora_h(_8085MP *Machine);
+static bool ora_l(_8085MP *Machine);
+static bool ora_m(_8085MP *Machine);
+static bool ora_a(_8085MP *Machine);
+
 
 
 
@@ -150,13 +290,13 @@ static data ALU(_8085MP *Machine,data operand2, bool add, data *anyOtherRegister
         // 2's Complement of Operand 2 then add
         operand2 = (operand2 ^ 0xff) + 0x01;
     }
-    // Normal Addition And Also Check All Flags 
+    // Normal Addition And Also Check All Flags
     // Perform Addition Via Custom Adder
     data carry = 0x00;
     data ac = 0x00;
     data sum = 0x00;
     data parity = 0xff;
-    data operand1 = (!anyOtherRegister) ? Machine->a : *(anyOtherRegister); 
+    data operand1 = (!anyOtherRegister) ? Machine->a : *(anyOtherRegister);
     for (int j = 0;  j < 8;  ++j){
         int op1nBit = 0 != (operand1 & (1 << j));
         int op2nBit = 0 != (operand2 & (1 << j));
@@ -173,23 +313,23 @@ static data ALU(_8085MP *Machine,data operand2, bool add, data *anyOtherRegister
         (*(anyOtherRegister)) = sum;
     // Carry Flag Check
      (carry && !anyOtherRegister) ? setCarry(Machine) : resetCarry(Machine);
-    
+
     //AC Flag Check
     (ac) ? setAC(Machine) : resetAC(Machine);
-     
+
      // Parity Check
      (parity) ? setParity(Machine) : resetParity(Machine);
-     
+
      // Zero Flag Check
      (sum) ? resetZero(Machine) : setZero(Machine);
      // Sign Flag
-     (sum & 0x80) ? setSign(Machine) : resetSign(Machine); 
+     (sum & 0x80) ? setSign(Machine) : resetSign(Machine);
      return sum;
 }
 // static void set_bc_pair()
 // Instruction Sets With Indexing of HexCodes :)
 static instruction_set allInstruction[0xff] = {
-    {hlt}, //0x00 change it with nop 
+    {hlt}, //0x00 change it with nop
     {lxi_b}, //0x01
     {stax_b}, //0x02
     {inx_b}, //0x03
@@ -200,7 +340,7 @@ static instruction_set allInstruction[0xff] = {
     {invalid},//0x08
     {dad_b},//0x09
     {ldax_b},//0x0A
-    {dcx_b},  
+    {dcx_b},
     {inr_c},
     {dcr_c},
     {mvi_c},
@@ -275,7 +415,7 @@ static bool dad_b(_8085MP *Machine){
 }
 static bool ldax_b(_8085MP *Machine){
     Machine->a = Machine->memory[pair_data_get(Machine->c, Machine->b)];
-    return true;    
+    return true;
 }
 static bool dcx_b(_8085MP *Machine){
     // Does Not Affect Any Flag
@@ -285,7 +425,7 @@ static bool dcx_b(_8085MP *Machine){
 static bool inr_c(_8085MP *Machine){
     ALU(Machine, 0x01, true, &(Machine->c));
     return true;
-}   
+}
 static bool dcr_c(_8085MP *Machine){
     ALU(Machine, 0x01, false, &Machine->c);
     return true;
@@ -346,7 +486,7 @@ static bool dad_d(_8085MP *Machine){
 }
 static bool ldax_d(_8085MP *Machine){
     Machine->a = Machine->memory[pair_data_get(Machine->e, Machine->d)];
-    return true;    
+    return true;
 }
 static bool dcx_d(_8085MP *Machine){
     // Does Not Affect Any Flag
@@ -357,7 +497,7 @@ static bool dcx_d(_8085MP *Machine){
 static bool inr_e(_8085MP *Machine){
     ALU(Machine, 0x01, true, &Machine->e);
     return true;
-}   
+}
 static bool dcr_e(_8085MP *Machine){
     ALU(Machine, 0x01, false, &Machine->e);
     return true;
@@ -367,7 +507,7 @@ static bool mvi_e(_8085MP *Machine){
     return true;
 }
 static bool rar(_8085MP *Machine){
-    data carryFlag = getCarry(Machine); 
+    data carryFlag = getCarry(Machine);
     if(Machine->a & 0x01)
         setCarry(Machine);
     else
@@ -376,7 +516,7 @@ static bool rar(_8085MP *Machine){
     Machine->a |= (carryFlag) ? 0x80 : 0x00;
     return true;
 }
-// RIM -> NEXT UPDATE 
+// RIM -> NEXT UPDATE
 static bool rim(_8085MP *Machine){
     return true;
 }
@@ -1088,7 +1228,7 @@ static bool hlt(_8085MP *Machine){
     return false;
 }
 
-// Helper Function 
+// Helper Function
 static void starttup(_8085MP *Machine, address start){
     Machine->instruction_register = start;
     Machine->pc = start;
@@ -1098,7 +1238,7 @@ static data getoperand(_8085MP *Machine){
 }
 static address pair_data_get(data lower, data higher){
     address returnValue = higher;
-    returnValue <<= 8; // 8 Bit Shifted 
+    returnValue <<= 8; // 8 Bit Shifted
     returnValue |= lower;
     return returnValue;
 }
@@ -1119,7 +1259,7 @@ static bool pairAdder(_8085MP *Machine, data higher, data lower){
     else
         resetCarry(Machine);
     return true;
-    
+
 }
 
 // Public Exposed Function
@@ -1136,13 +1276,13 @@ _8085MP* createNewMachine(){
     newMachine->pc = 0;
     newMachine->sp = 0;
     newMachine->memory = (data *)calloc(10000, sizeof(data));
-    return newMachine;    
+    return newMachine;
 }
 
 bool execute(_8085MP *machine, address start_address){
     starttup(machine, start_address);
     bool ranSuccessfully = false;
-    do{ 
+    do{
         ranSuccessfully = allInstruction[machine->memory[machine->instruction_register]].func(machine);
         machine->instruction_register = ++machine->pc;
     }while(ranSuccessfully);
@@ -1155,7 +1295,7 @@ int main(){
     //newMachine->memory[0x0fff] = 0x07;
     newMachine->a = 0x0b;
     // newMachine->memory[0] = 0x01;
-    // newMachine->memory[1] = 0xff;  
+    // newMachine->memory[1] = 0xff;
     // newMachine->memory[2] = 0x07;
     // newMachine->memory[3] = 0x09;
     newMachine->memory[0] = 0x27;
