@@ -718,6 +718,42 @@ static bool mov_m_l(_8085MP *Machine){
     return true;
 }
 // HLT
+static bool mov_m_a(_8085MP *Machine){
+    Machine->memory[pair_data_get(Machine->l, Machine->h)] = Machine->a;
+    return true;
+}
+static bool mov_a_b(_8085MP *Machine){
+    Machine->a = Machine->b;
+    return true;
+}
+static bool mov_a_c(_8085MP *Machine){
+    Machine->a = Machine->c;
+    return true;
+}
+static bool mov_a_d(_8085MP *Machine){
+    Machine->a = Machine->d;
+    return true;
+}
+static bool mov_a_e(_8085MP *Machine){
+    Machine->a = Machine->e;
+    return true;
+}
+static bool mov_a_h(_8085MP *Machine){
+    Machine->a = Machine->h;
+    return true;
+}
+static bool mov_a_l(_8085MP *Machine){
+    Machine->a = Machine->l;
+    return true;
+}
+static bool mov_a_m(_8085MP *Machine){
+    Machine->a = Machine->memory[pair_data_get(Machine->l, Machine->h)];
+    return true;
+}
+static bool mov_a_a(_8085MP *Machine){
+    Machine->a = Machine->a;
+    return true;
+}
 
 static bool invalid(_8085MP *Machine){
     printf("Invalid OpCode");
