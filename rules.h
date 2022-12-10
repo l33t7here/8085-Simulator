@@ -144,7 +144,7 @@
   {adc_h     , "adc"   , "h"  , ""   , 0x00}, //0x8c
   {adc_l     , "adc"   , "l"  , ""   , 0x00}, //0x8d
   {adc_m     , "adc"   , "m"  , ""   , 0x00}, //0x8e
-  {adc_m     , "adc"   , "a"  , ""   , 0x00}, //0x8f
+  {adc_a     , "adc"   , "a"  , ""   , 0x00}, //0x8f
   {sub_b     , "sub"   , "b"  , ""   , 0x00}, //0x90
   {sub_c     , "sub"   , "c"  , ""   , 0x00}, //0x91
   {sub_d     , "sub"   , "d"  , ""   , 0x00}, //0x92

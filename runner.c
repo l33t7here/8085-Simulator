@@ -58,6 +58,27 @@ static data getoperand(_8085MP *Machine);
 static address pair_data_get(data lower, data higher);
 static void pair_data_set(data *higher, data *lower, address value);
 static bool pairAdder(_8085MP *Machine, data higher, data lower);
+static void setArthMaticFlags(_8085MP *Machine){
+    if(!Machine->a){
+        setZero(Machine);
+        setParity(Machine);
+        return;
+    }
+    resetZero(Machine);
+    if(Machine->a & 0x80)
+        setSign(Machine);
+    else
+        resetSign(Machine);
+    data parity = 0xff;
+    for (int j = 0;  j < 8;  ++j){
+        if(0 != (Machine->a & (1 << j)))
+            parity = ~parity;
+    }
+    if(parity)
+        setParity(Machine);
+    else
+        resetParity(Machine);
+}
 // Flag Section
 static void setCarry(_8085MP *Machine){
     // Position Of Carry Flag
@@ -752,6 +773,309 @@ static bool mov_a_m(_8085MP *Machine){
 }
 static bool mov_a_a(_8085MP *Machine){
     Machine->a = Machine->a;
+    return true;
+}
+static bool add_b(_8085MP *Machine){
+    ALU(Machine, Machine->b, true, NULL);
+    return true;
+}
+static bool add_c(_8085MP *Machine){
+    ALU(Machine, Machine->c, true, NULL);
+    return true;
+}
+static bool add_d(_8085MP *Machine){
+    ALU(Machine, Machine->d, true, NULL);
+    return true;
+}
+static bool add_e(_8085MP *Machine){
+    ALU(Machine, Machine->e, true, NULL);
+    return true;
+}
+static bool add_h(_8085MP *Machine){
+    ALU(Machine, Machine->h, true, NULL);
+    return true;
+}
+static bool add_l(_8085MP *Machine){
+    ALU(Machine, Machine->l, true, NULL);
+    return true;
+}
+static bool add_m(_8085MP *Machine){
+    ALU(Machine, Machine->memory[pair_data_get(Machine->l, Machine->h)], true, NULL);
+    return true;
+}
+static bool add_a(_8085MP *Machine){
+    ALU(Machine, Machine->a, true, NULL);
+    return true;
+}
+static bool adc_b(_8085MP *Machine){
+    ALU(Machine, Machine->b, true, NULL);
+    ALU(Machine, getCarry(Machine), true, NULL);
+    return true;
+}
+static bool adc_c(_8085MP *Machine){
+    ALU(Machine, Machine->c, true, NULL);
+    ALU(Machine, getCarry(Machine), true, NULL);
+    return true;
+}
+static bool adc_d(_8085MP *Machine){
+    ALU(Machine, Machine->e, true, NULL);
+    ALU(Machine, getCarry(Machine), true, NULL);
+    return true;
+}
+static bool adc_e(_8085MP *Machine){
+    ALU(Machine, Machine->e, true, NULL);
+    ALU(Machine, getCarry(Machine), true, NULL);
+    return true;
+}
+static bool adc_h(_8085MP *Machine){
+    ALU(Machine, Machine->h, true, NULL);
+    ALU(Machine, getCarry(Machine), true, NULL);
+    return true;
+}
+static bool adc_l(_8085MP *Machine){
+    ALU(Machine, Machine->l, true, NULL);
+    ALU(Machine, getCarry(Machine), true, NULL);
+    return true;
+}
+static bool adc_m(_8085MP *Machine){
+    ALU(Machine, Machine->memory[pair_data_get(Machine->l, Machine->h)] ,true, NULL);
+    ALU(Machine, getCarry(Machine), true, NULL);
+    return true;
+}
+static bool adc_a(_8085MP *Machine){
+    ALU(Machine, Machine->memory[pair_data_get(Machine->l, Machine->h)], true, NULL);
+    ALU(Machine, getCarry(Machine), true, NULL);
+    return true;
+}
+static bool sub_b(_8085MP *Machine){
+    ALU(Machine, Machine->b, false, NULL);
+    return true;
+}
+static bool sub_c(_8085MP *Machine){
+    ALU(Machine, Machine->c, false, NULL);
+    return true;
+}
+static bool sub_d(_8085MP *Machine){
+    ALU(Machine, Machine->d, false, NULL);
+    return true;
+}
+static bool sub_e(_8085MP *Machine){
+    ALU(Machine, Machine->e, false, NULL);
+    return true;
+}
+static bool sub_h(_8085MP *Machine){
+    ALU(Machine, Machine->h, false, NULL);
+    return true;
+}
+static bool sub_l(_8085MP *Machine){
+    ALU(Machine, Machine->l, false, NULL);
+    return true;
+}
+static bool sub_m(_8085MP *Machine){
+    ALU(Machine, Machine->memory[pair_data_get(Machine->l, Machine->h)], false, NULL);
+    return true;
+}
+static bool sub_a(_8085MP *Machine){
+    ALU(Machine, Machine->a, false, NULL);
+    return true;
+}
+static bool sbb_b(_8085MP *Machine){
+    ALU(Machine, Machine->b, false, NULL);
+    ALU(Machine, getCarry(Machine), false, NULL);
+    return true;
+}
+static bool sbb_c(_8085MP *Machine){
+    ALU(Machine, Machine->c, false, NULL);
+    ALU(Machine, getCarry(Machine), false, NULL);
+    return true;
+}
+static bool sbb_d(_8085MP *Machine){
+    ALU(Machine, Machine->e, false, NULL);
+    ALU(Machine, getCarry(Machine), false, NULL);
+    return true;
+}
+static bool sbb_e(_8085MP *Machine){
+    ALU(Machine, Machine->e, false, NULL);
+    ALU(Machine, getCarry(Machine), false, NULL);
+    return true;
+}
+static bool sbb_h(_8085MP *Machine){
+    ALU(Machine, Machine->h, false, NULL);
+    ALU(Machine, getCarry(Machine), false, NULL);
+    return true;
+}
+static bool sbb_l(_8085MP *Machine){
+    ALU(Machine, Machine->l, false, NULL);
+    ALU(Machine, getCarry(Machine), false, NULL);
+    return true;
+}
+static bool sbb_m(_8085MP *Machine){
+    ALU(Machine, Machine->memory[pair_data_get(Machine->l, Machine->h)] ,false, NULL);
+    ALU(Machine, getCarry(Machine), false, NULL);
+    return true;
+}
+static bool sbb_a(_8085MP *Machine){
+    ALU(Machine, Machine->memory[pair_data_get(Machine->l, Machine->h)], false, NULL);
+    ALU(Machine, getCarry(Machine), false, NULL);
+    return true;
+}
+static bool ana_b(_8085MP *Machine){
+    Machine->a &= Machine->b;
+    resetCarry(Machine);
+    setAC(Machine);
+    setArthMaticFlags(Machine);
+    return true;
+}
+static bool ana_c(_8085MP *Machine){
+    Machine->a &= Machine->c;
+    resetCarry(Machine);
+}
+static bool ana_d(_8085MP *Machine){
+    Machine->a &= Machine->d;
+    resetCarry(Machine);
+    setAC(Machine);
+    setArthMaticFlags(Machine);
+    return true;
+}
+static bool ana_e(_8085MP *Machine){
+    Machine->a &= Machine->e;
+    resetCarry(Machine);
+    setAC(Machine);
+    setArthMaticFlags(Machine);
+    return true;
+}
+static bool ana_h(_8085MP *Machine){
+    Machine->a &= Machine->h;
+    resetCarry(Machine);
+    setAC(Machine);
+    setArthMaticFlags(Machine);
+    return true;
+}
+static bool ana_l(_8085MP *Machine){
+    Machine->a &= Machine->l;
+    resetCarry(Machine);
+    setAC(Machine);
+    setArthMaticFlags(Machine);
+    return true;
+}
+static bool ana_m(_8085MP *Machine){
+    Machine->a &= Machine->memory[pair_data_get(Machine->l, Machine->h)];
+    resetCarry(Machine);
+    setAC(Machine);
+    setArthMaticFlags(Machine);
+    return true;
+}
+static bool ana_a(_8085MP *Machine){
+    Machine->a &= Machine->a;
+    resetCarry(Machine);
+    setAC(Machine);
+    setArthMaticFlags(Machine);
+    return true;
+}
+static bool xra_b(_8085MP *Machine){
+    Machine->a ^= Machine->b;
+    resetCarry(Machine);
+    resetAC(Machine);
+    setArthMaticFlags(Machine);
+    return true;
+}
+static bool xra_c(_8085MP *Machine){
+    Machine->a ^= Machine->c;
+    resetCarry(Machine);
+}
+static bool xra_d(_8085MP *Machine){
+    Machine->a ^= Machine->d;
+    resetCarry(Machine);
+    resetAC(Machine);
+    setArthMaticFlags(Machine);
+    return true;
+}
+static bool xra_e(_8085MP *Machine){
+    Machine->a ^= Machine->e;
+    resetCarry(Machine);
+    resetAC(Machine);
+    setArthMaticFlags(Machine);
+    return true;
+}
+static bool xra_h(_8085MP *Machine){
+    Machine->a ^= Machine->h;
+    resetCarry(Machine);
+    resetAC(Machine);
+    setArthMaticFlags(Machine);
+    return true;
+}
+static bool xra_l(_8085MP *Machine){
+    Machine->a ^= Machine->l;
+    resetCarry(Machine);
+    resetAC(Machine);
+    setArthMaticFlags(Machine);
+    return true;
+}
+static bool xra_m(_8085MP *Machine){
+    Machine->a ^= Machine->memory[pair_data_get(Machine->l, Machine->h)];
+    resetCarry(Machine);
+    resetAC(Machine);
+    setArthMaticFlags(Machine);
+    return true;
+}
+static bool xra_a(_8085MP *Machine){
+    Machine->a ^= Machine->a;
+    resetCarry(Machine);
+    resetAC(Machine);
+    setArthMaticFlags(Machine);
+    return true;
+}
+static bool ora_b(_8085MP *Machine){
+    Machine->a |= Machine->b;
+    resetCarry(Machine);
+    resetAC(Machine);
+    setArthMaticFlags(Machine);
+    return true;
+}
+static bool ora_c(_8085MP *Machine){
+    Machine->a |= Machine->c;
+    resetCarry(Machine);
+}
+static bool ora_d(_8085MP *Machine){
+    Machine->a |= Machine->d;
+    resetCarry(Machine);
+    resetAC(Machine);
+    setArthMaticFlags(Machine);
+    return true;
+}
+static bool ora_e(_8085MP *Machine){
+    Machine->a |= Machine->e;
+    resetCarry(Machine);
+    resetAC(Machine);
+    setArthMaticFlags(Machine);
+    return true;
+}
+static bool ora_h(_8085MP *Machine){
+    Machine->a |= Machine->h;
+    resetCarry(Machine);
+    resetAC(Machine);
+    setArthMaticFlags(Machine);
+    return true;
+}
+static bool ora_l(_8085MP *Machine){
+    Machine->a |= Machine->l;
+    resetCarry(Machine);
+    resetAC(Machine);
+    setArthMaticFlags(Machine);
+    return true;
+}
+static bool ora_m(_8085MP *Machine){
+    Machine->a |= Machine->memory[pair_data_get(Machine->l, Machine->h)];
+    resetCarry(Machine);
+    resetAC(Machine);
+    setArthMaticFlags(Machine);
+    return true;
+}
+static bool ora_a(_8085MP *Machine){
+    Machine->a |= Machine->a;
+    resetCarry(Machine);
+    resetAC(Machine);
+    setArthMaticFlags(Machine);
     return true;
 }
 
