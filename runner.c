@@ -3,7 +3,6 @@
 #include <stdbool.h>
 
 #include "microProcessor.h"
-#define OFFSETOF(TYPE, ELEMENT) ((size_t)&(((TYPE *)0)->ELEMENT))
 
 typedef struct instruction_set{
     bool (*func)(_8085MP *Machine);
@@ -40,6 +39,7 @@ static bool dad_d(_8085MP *Machine);
 static bool ldax_d(_8085MP *Machine);
 static bool dcx_d(_8085MP *Machine);
 static bool inr_e(_8085MP *Machine);
+static bool dcr_e(_8085MP *Machine);
 static bool mvi_e(_8085MP *Machine);
 static bool rar(_8085MP *Machine);
 static bool rim(_8085MP *Machine);
@@ -49,13 +49,13 @@ static bool inx_h(_8085MP *Machine);
 static bool inr_h(_8085MP *Machine);
 static bool dcr_h(_8085MP *Machine);
 static bool mvi_h(_8085MP *Machine);
-
+static bool daa(_8085MP *Machine);
 
 
 
 // All Helper Function Defined
 static data getoperand(_8085MP *Machine);
-static address pair_data_get(data higher, data lower);
+static address pair_data_get(data lower, data higher);
 static void pair_data_set(data *higher, data *lower, address value);
 static bool pairAdder(_8085MP *Machine, data higher, data lower);
 // Flag Section
@@ -124,7 +124,7 @@ static void clearFlags(_8085MP *Machine){
     Machine->flag = 0x00;
 }
 
-static data ALU(_8085MP *Machine,data operand2, bool add, size_t offSet){
+static data ALU(_8085MP *Machine,data operand2, bool add, data *anyOtherRegister){
     if(!add){
         // 2's Complement of Operand 2 then add
         operand2 = (operand2 ^ 0xff) + 0x01;
@@ -135,7 +135,7 @@ static data ALU(_8085MP *Machine,data operand2, bool add, size_t offSet){
     data ac = 0x00;
     data sum = 0x00;
     data parity = 0xff;
-    data operand1 = (!offSet) ? Machine->a :(*((data *)((char *)Machine + offSet))); 
+    data operand1 = (!anyOtherRegister) ? Machine->a : *(anyOtherRegister); 
     for (int j = 0;  j < 8;  ++j){
         int op1nBit = 0 != (operand1 & (1 << j));
         int op2nBit = 0 != (operand2 & (1 << j));
@@ -146,12 +146,12 @@ static data ALU(_8085MP *Machine,data operand2, bool add, size_t offSet){
         carry = (op1nBit & op2nBit) | carry & (op1nBit | op2nBit);
         (j == 3 & carry) ? ac  = 1 : 0;
      }
-    if(!offSet)
+    if(!anyOtherRegister)
         Machine->a = sum;
     else
-        (*((data *)((char *)Machine + offSet))) = sum;
+        (*(anyOtherRegister)) = sum;
     // Carry Flag Check
-     (carry && !offSet) ? setCarry(Machine) : resetCarry(Machine);
+     (carry && !anyOtherRegister) ? setCarry(Machine) : resetCarry(Machine);
     
     //AC Flag Check
     (ac) ? setAC(Machine) : resetAC(Machine);
@@ -165,8 +165,6 @@ static data ALU(_8085MP *Machine,data operand2, bool add, size_t offSet){
      (sum & 0x80) ? setSign(Machine) : resetSign(Machine); 
      return sum;
 }
-
-
 // static void set_bc_pair()
 // Instruction Sets With Indexing of HexCodes :)
 static instruction_set allInstruction[0xff] = {
@@ -186,6 +184,7 @@ static instruction_set allInstruction[0xff] = {
     {dcr_c},
     {mvi_c},
     {rrc},
+    {invalid},
     {lxi_d},
     {stax_d},
     {inx_d},
@@ -193,10 +192,12 @@ static instruction_set allInstruction[0xff] = {
     {dcr_d},
     {mvi_d},
     {ral},
+    {invalid},
     {dad_d},
     {ldax_d},
-    {dcr_d},
+    {dcx_d},
     {inr_e},
+    {dcr_e},
     {mvi_e},
     {rar},
     {rim},
@@ -206,7 +207,7 @@ static instruction_set allInstruction[0xff] = {
     {inr_h},
     {dcr_h},
     {mvi_h},
-
+    {daa}
 };
 
 static bool nop(){
@@ -219,21 +220,21 @@ static bool lxi_b(_8085MP *Machine){
     return true;
 }
 static bool stax_b(_8085MP *Machine){
-    Machine->memory[pair_data_get(Machine->b, Machine->c)] = Machine->a;
+    Machine->memory[pair_data_get(Machine->c, Machine->b)] = Machine->a;
     return true;
 };
 static bool inr_b(_8085MP *Machine){
     // Do Not Change Carry Flag
-    ALU(Machine, 0x01, true, OFFSETOF(_8085MP, b));
+    ALU(Machine, 0x01, true, &(Machine->b));
     return true;
 }
 static bool dcr_b(_8085MP *Machine){
-    ALU(Machine, 0x01, false,OFFSETOF(_8085MP, b));
+    ALU(Machine, 0x01, false,&(Machine->b));
     return true;
 }
 static bool inx_b(_8085MP *Machine){
     // Does Not Affect Any Flag
-    pair_data_set(&Machine->b, &Machine->c, pair_data_get(Machine->b, Machine->c) + 0x01);
+    pair_data_set(&Machine->b, &Machine->c, pair_data_get(Machine->c, Machine->b) + 0x01);
     return true;
 }
 static bool mvi_b(_8085MP *Machine){
@@ -252,20 +253,20 @@ static bool dad_b(_8085MP *Machine){
     return pairAdder(Machine, Machine->b, Machine->c);
 }
 static bool ldax_b(_8085MP *Machine){
-    Machine->a = Machine->memory[pair_data_get(Machine->b, Machine->c)];
+    Machine->a = Machine->memory[pair_data_get(Machine->c, Machine->b)];
     return true;    
 }
 static bool dcx_b(_8085MP *Machine){
     // Does Not Affect Any Flag
-    pair_data_set(&Machine->b, &Machine->c, pair_data_get(Machine->b, Machine->c) - 0x01);
+    pair_data_set(&Machine->b, &Machine->c, pair_data_get(Machine->c, Machine->b) - 0x01);
     return true;
 }
 static bool inr_c(_8085MP *Machine){
-    ALU(Machine, 0x01, true, OFFSETOF(_8085MP, c));
+    ALU(Machine, 0x01, true, &(Machine->c));
     return true;
 }   
 static bool dcr_c(_8085MP *Machine){
-    ALU(Machine, 0x01, false, OFFSETOF(_8085MP, c));
+    ALU(Machine, 0x01, false, &Machine->c);
     return true;
 }
 static bool mvi_c(_8085MP *Machine){
@@ -288,21 +289,21 @@ static bool lxi_d(_8085MP *Machine){
     return true;
 }
 static bool stax_d(_8085MP *Machine){
-    Machine->memory[pair_data_get(Machine->d, Machine->e)] = Machine->a;
+    Machine->memory[pair_data_get(Machine->e, Machine->d)] = Machine->a;
     return true;
 };
 static bool inr_d(_8085MP *Machine){
     // Do Not Change Carry Flag
-    ALU(Machine, 0x01, true, OFFSETOF(_8085MP, d));
+    ALU(Machine, 0x01, true, &Machine->d);
     return true;
 }
 static bool dcr_d(_8085MP *Machine){
-    ALU(Machine, 0x01, false,OFFSETOF(_8085MP, d));
+    ALU(Machine, 0x01, false,&Machine->d);
     return true;
 }
 static bool inx_d(_8085MP *Machine){
     // Does Not Affect Any Flag
-    pair_data_set(&Machine->b, &Machine->c, pair_data_get(Machine->d, Machine->e) + 0x01);
+    pair_data_set(&Machine->b, &Machine->c, pair_data_get(Machine->e, Machine->d) + 0x01);
     return true;
 }
 static bool mvi_d(_8085MP *Machine){
@@ -323,21 +324,21 @@ static bool dad_d(_8085MP *Machine){
     return pairAdder(Machine, Machine->d, Machine->e);
 }
 static bool ldax_d(_8085MP *Machine){
-    Machine->a = Machine->memory[pair_data_get(Machine->d, Machine->e)];
+    Machine->a = Machine->memory[pair_data_get(Machine->e, Machine->d)];
     return true;    
 }
 static bool dcx_d(_8085MP *Machine){
     // Does Not Affect Any Flag
-    pair_data_set(&Machine->d, &Machine->e, pair_data_get(Machine->d, Machine->e) - 0x01);
+    pair_data_set(&Machine->d, &Machine->e, pair_data_get(Machine->e, Machine->d) - 0x01);
     return true;
 }
 
 static bool inr_e(_8085MP *Machine){
-    ALU(Machine, 0x01, true, OFFSETOF(_8085MP, e));
+    ALU(Machine, 0x01, true, &Machine->e);
     return true;
 }   
 static bool dcr_e(_8085MP *Machine){
-    ALU(Machine, 0x01, false, OFFSETOF(_8085MP, e));
+    ALU(Machine, 0x01, false, &Machine->e);
     return true;
 }
 static bool mvi_e(_8085MP *Machine){
@@ -375,16 +376,16 @@ static bool shld(_8085MP *Machine){
 }
 static bool inx_h(_8085MP *Machine){
     // Does Not Affect Any Flag
-    pair_data_set(&Machine->h, &Machine->l, pair_data_get(Machine->h, Machine->l) + 0x01);
+    pair_data_set(&Machine->h, &Machine->l, pair_data_get(Machine->l, Machine->h) + 0x01);
     return true;
 }
 static bool inr_h(_8085MP *Machine){
     // Do Not Change Carry Flag
-    ALU(Machine, 0x01, true, OFFSETOF(_8085MP, h));
+    ALU(Machine, 0x01, true, &Machine->h);
     return true;
 }
 static bool dcr_h(_8085MP *Machine){
-    ALU(Machine, 0x01, false,OFFSETOF(_8085MP, h));
+    ALU(Machine, 0x01, false,&Machine->h);
     return true;
 }
 
@@ -392,6 +393,331 @@ static bool mvi_h(_8085MP *Machine){
     Machine->h = getoperand(Machine);
     return true;
 }
+static bool daa(_8085MP *Machine){
+    if(((Machine->a & 0x0f) > 0x09) || getAC(Machine))
+        ALU(Machine, 0x06, true, NULL);
+    if(((Machine->a & 0xf0) > 0x09) || getCarry(Machine))
+        ALU(Machine, 0x60, true, NULL);
+    return true;
+}
+static bool dad_h(_8085MP *Machine){
+    return pairAdder(Machine, Machine->h, Machine->l);
+}
+static bool lhld(_8085MP *Machine){
+    // printf("I ran");
+    data lowerByte = getoperand(Machine);
+    data higherByte = getoperand(Machine);
+    Machine->l = Machine->memory[pair_data_get(lowerByte, higherByte)];
+    Machine->h = Machine->memory[pair_data_get(lowerByte, higherByte) + 1];
+    return true;
+}
+static bool dcx_h(_8085MP *Machine){
+    // Does Not Affect Any Flag
+    pair_data_set(&Machine->h, &Machine->l, pair_data_get(Machine->l, Machine->h) - 0x01);
+    return true;
+}
+static bool inr_l(_8085MP *Machine){
+    // Do Not Change Carry Flag
+    ALU(Machine, 0x01, true, &Machine->l);
+    return true;
+}
+static bool dcr_l(_8085MP *Machine){
+    ALU(Machine, 0x01, false,&Machine->l);
+    return true;
+}
+
+static bool mvi_l(_8085MP *Machine){
+    Machine->l = getoperand(Machine);
+    return true;
+}
+static bool cma(_8085MP *Machine){
+    Machine->a = ~Machine->a;
+    return true;
+}
+// SIM NEXT UPDATE
+static bool sim(_8085MP *Machine){
+    return true;
+}
+
+static bool lxi_sp(_8085MP *Machine){
+    data lowerByte = getoperand(Machine);
+    data higherByte = getoperand(Machine);
+    Machine->sp = higherByte;
+    Machine->sp <<= 8;
+    Machine->sp |= lowerByte;
+    return true;
+}
+static bool inx_sp(_8085MP *Machine){
+    Machine->sp = Machine->sp + 0x01;
+    return true;
+}
+static bool inr_m(_8085MP *Machine){
+    Machine->memory[pair_data_get(Machine->l, Machine->h)]++;
+    return true;
+}
+
+static bool dcr_m(_8085MP *Machine){
+    Machine->memory[pair_data_get(Machine->l, Machine->h)]--;
+    return true;
+}
+static bool mvi_m(_8085MP *Machine){
+    Machine->memory[pair_data_get(Machine->l, Machine->h)] = getoperand(Machine);
+    return true;
+}
+static bool stc(_8085MP *Machine){
+    setCarry(Machine);
+    return true;
+}
+
+static bool dad_sp(_8085MP *Machine){
+    return pairAdder(Machine, Machine->sp >> 8, Machine->sp);
+}
+static bool lda(_8085MP *Machine){
+   Machine->a = Machine->memory[pair_data_get(getoperand(Machine), getoperand(Machine))];
+   return true;
+}
+static bool dcx_sp(_8085MP *Machine){
+    Machine->sp = Machine->sp - 0x01;
+    return true;
+}
+static bool inr_a(_8085MP *Machine){
+    // Do Not Change Carry Flag
+    ALU(Machine, 0x01, true, &Machine->a);
+    return true;
+}
+static bool dcr_a(_8085MP *Machine){
+    // Do Not Change Carry Flag
+    ALU(Machine, 0x01, false, &Machine->a);
+    return true;
+}
+static bool mvi_a(_8085MP *Machine){
+    Machine->a = getoperand(Machine);
+    return true;
+}
+static bool cmc(_8085MP *Machine){
+    if(getCarry(Machine))
+        resetCarry(Machine);
+    else
+        setCarry(Machine);
+    return true;
+}
+static bool mov_b_b(_8085MP *Machine){
+    Machine->b = Machine->b;
+    return true;
+}
+static bool mov_b_c(_8085MP *Machine){
+    Machine->b = Machine->c;
+    return true;
+}
+static bool mov_b_d(_8085MP *Machine){
+    Machine->b = Machine->d;
+    return true;
+}
+static bool mov_b_e(_8085MP *Machine){
+    Machine->b = Machine->e;
+    return true;
+}
+static bool mov_b_h(_8085MP *Machine){
+    Machine->b = Machine->h;
+    return true;
+}
+static bool mov_b_l(_8085MP *Machine){
+    Machine->b = Machine->l;
+    return true;
+}
+static bool mov_b_m(_8085MP *Machine){
+    Machine->b = Machine->memory[pair_data_get(Machine->l, Machine->h)];
+    return true;
+}
+static bool mov_b_a(_8085MP *Machine){
+    Machine->b = Machine->a;
+    return true;
+}
+static bool mov_c_b(_8085MP *Machine){
+    Machine->c = Machine->b;
+    return true;
+}
+static bool mov_c_c(_8085MP *Machine){
+    Machine->c = Machine->c;
+    return true;
+}
+static bool mov_c_d(_8085MP *Machine){
+    Machine->c = Machine->d;
+    return true;
+}
+static bool mov_c_e(_8085MP *Machine){
+    Machine->c = Machine->e;
+    return true;
+}
+static bool mov_c_h(_8085MP *Machine){
+    Machine->c = Machine->h;
+    return true;
+}
+static bool mov_c_l(_8085MP *Machine){
+    Machine->c = Machine->l;
+    return true;
+}
+static bool mov_c_m(_8085MP *Machine){
+    Machine->c = Machine->memory[pair_data_get(Machine->l, Machine->h)];
+    return true;
+}
+static bool mov_c_a(_8085MP *Machine){
+    Machine->c = Machine->a;
+    return true;
+}
+static bool mov_d_b(_8085MP *Machine){
+    Machine->d = Machine->b;
+    return true;
+}
+static bool mov_d_c(_8085MP *Machine){
+    Machine->d = Machine->c;
+    return true;
+}
+static bool mov_d_d(_8085MP *Machine){
+    Machine->d = Machine->d;
+    return true;
+}
+static bool mov_d_e(_8085MP *Machine){
+    Machine->d = Machine->e;
+    return true;
+}
+static bool mov_d_h(_8085MP *Machine){
+    Machine->d = Machine->h;
+    return true;
+}
+static bool mov_d_l(_8085MP *Machine){
+    Machine->d = Machine->l;
+    return true;
+}
+static bool mov_d_m(_8085MP *Machine){
+    Machine->d = Machine->memory[pair_data_get(Machine->l, Machine->h)];
+    return true;
+}
+static bool mov_d_a(_8085MP *Machine){
+    Machine->d = Machine->a;
+    return true;
+}
+static bool mov_e_b(_8085MP *Machine){
+    Machine->e = Machine->b;
+    return true;
+}
+static bool mov_e_c(_8085MP *Machine){
+    Machine->e = Machine->c;
+    return true;
+}
+static bool mov_e_d(_8085MP *Machine){
+    Machine->e = Machine->d;
+    return true;
+}
+static bool mov_e_e(_8085MP *Machine){
+    Machine->e = Machine->e;
+    return true;
+}
+static bool mov_e_h(_8085MP *Machine){
+    Machine->e = Machine->h;
+    return true;
+}
+static bool mov_e_l(_8085MP *Machine){
+    Machine->e = Machine->l;
+    return true;
+}
+static bool mov_e_m(_8085MP *Machine){
+    Machine->e = Machine->memory[pair_data_get(Machine->l, Machine->h)];
+    return true;
+}
+static bool mov_e_a(_8085MP *Machine){
+    Machine->e = Machine->a;
+    return true;
+}
+static bool mov_h_b(_8085MP *Machine){
+    Machine->h = Machine->b;
+    return true;
+}
+static bool mov_h_c(_8085MP *Machine){
+    Machine->h = Machine->c;
+    return true;
+}
+static bool mov_h_d(_8085MP *Machine){
+    Machine->h = Machine->d;
+    return true;
+}
+static bool mov_h_e(_8085MP *Machine){
+    Machine->h = Machine->e;
+    return true;
+}
+static bool mov_h_h(_8085MP *Machine){
+    Machine->h = Machine->h;
+    return true;
+}
+static bool mov_h_l(_8085MP *Machine){
+    Machine->h = Machine->l;
+    return true;
+}
+static bool mov_h_m(_8085MP *Machine){
+    Machine->h = Machine->memory[pair_data_get(Machine->l, Machine->h)];
+    return true;
+}
+static bool mov_h_a(_8085MP *Machine){
+    Machine->h = Machine->a;
+    return true;
+}
+static bool mov_l_b(_8085MP *Machine){
+    Machine->l = Machine->b;
+    return true;
+}
+static bool mov_l_c(_8085MP *Machine){
+    Machine->l = Machine->c;
+    return true;
+}
+static bool mov_l_d(_8085MP *Machine){
+    Machine->l = Machine->d;
+    return true;
+}
+static bool mov_l_e(_8085MP *Machine){
+    Machine->l = Machine->e;
+    return true;
+}
+static bool mov_l_h(_8085MP *Machine){
+    Machine->l = Machine->h;
+    return true;
+}
+static bool mov_l_l(_8085MP *Machine){
+    Machine->l = Machine->l;
+    return true;
+}
+static bool mov_l_m(_8085MP *Machine){
+    Machine->l = Machine->memory[pair_data_get(Machine->l, Machine->h)];
+    return true;
+}
+static bool mov_l_a(_8085MP *Machine){
+    Machine->l = Machine->a;
+    return true;
+}
+static bool mov_m_b(_8085MP *Machine){
+    Machine->memory[pair_data_get(Machine->l, Machine->h)] = Machine->b;
+    return true;
+}
+static bool mov_m_c(_8085MP *Machine){
+    Machine->memory[pair_data_get(Machine->l, Machine->h)] = Machine->c;
+    return true;
+}
+static bool mov_m_d(_8085MP *Machine){
+    Machine->memory[pair_data_get(Machine->l, Machine->h)] = Machine->d;
+    return true;
+}
+static bool mov_m_e(_8085MP *Machine){
+    Machine->memory[pair_data_get(Machine->l, Machine->h)] = Machine->e;
+    return true;
+}
+static bool mov_m_h(_8085MP *Machine){
+    Machine->memory[pair_data_get(Machine->l, Machine->h)] = Machine->h;
+    return true;
+}
+static bool mov_m_l(_8085MP *Machine){
+    Machine->memory[pair_data_get(Machine->l, Machine->h)] = Machine->l;
+    return true;
+}
+// HLT
 
 static bool invalid(_8085MP *Machine){
     printf("Invalid OpCode");
@@ -410,7 +736,7 @@ static void starttup(_8085MP *Machine, address start){
 static data getoperand(_8085MP *Machine){
     return Machine->memory[++Machine->pc];
 }
-static address pair_data_get(data higher, data lower){
+static address pair_data_get(data lower, data higher){
     address returnValue = higher;
     returnValue <<= 8; // 8 Bit Shifted 
     returnValue |= lower;
@@ -467,14 +793,15 @@ bool execute(_8085MP *machine, address start_address){
 int main(){
     _8085MP *newMachine = createNewMachine();
     //newMachine->memory[0x0fff] = 0x07;
-    newMachine->memory[0] = 0x01;
-    newMachine->memory[1] = 0xff;  
-    newMachine->memory[2] = 0x07;
+    newMachine->a = 0x0b;
+    // newMachine->memory[0] = 0x01;
+    // newMachine->memory[1] = 0xff;  
+    // newMachine->memory[2] = 0x07;
     // newMachine->memory[3] = 0x09;
-    newMachine->memory[3] = 0x05;
-    newMachine->memory[4] = 0x00;
+    newMachine->memory[0] = 0x27;
+    newMachine->memory[1] = 0x00;
     execute(newMachine, 0x00);
-    printf("%x", newMachine->b);
+    printf("%x", newMachine->a);
     return 0;
 }
 
