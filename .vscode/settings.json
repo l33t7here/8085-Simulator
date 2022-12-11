@@ -2,6 +2,9 @@
     "nuxt.isNuxtApp": false,
     "files.associations": {
         "string.h": "c",
-        "limits": "cpp"
+        "limits": "cpp",
+        "curses.h": "c",
+        "stdlib.h": "c",
+        "8085.h": "c"
     }
 }

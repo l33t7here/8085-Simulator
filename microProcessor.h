@@ -25,4 +25,4 @@ typedef struct _8085MP{
 // To Handle That We Have Used Address stuff
 // Here Address Representing 16 Bit Data
 _8085MP* createNewMachine();
-bool execute(_8085MP *machine, address start_address);
+_Bool execute(_8085MP *machine, address start_address);
