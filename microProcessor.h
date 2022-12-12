@@ -14,7 +14,7 @@ typedef struct _8085MP{
   data flag;
   address sp;
   address pc;
-  data *memory;
+  data memory[0xffff];
 
   // Special Register
   address instruction_register;
@@ -25,4 +25,4 @@ typedef struct _8085MP{
 // To Handle That We Have Used Address stuff
 // Here Address Representing 16 Bit Data
 _8085MP* createNewMachine();
-_Bool execute(_8085MP *machine, address start_address);
+bool execute(_8085MP *machine, address start_address);
