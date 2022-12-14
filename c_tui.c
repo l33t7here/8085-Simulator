@@ -36,11 +36,11 @@ bool runProgram(WINDOW* flags, WINDOW * uPM, WINDOW *instre, char *fileName){
      mvwprintw(flags ,7,1, " H: 0x%02x  L: 0x%02x", newMachine->h,newMachine->l);
      mvwprintw(flags ,10,1, "%s", " -----Flags----- ");
      mvwprintw(flags ,12,1,  " C.Value: 0x%02x ", newMachine->flag);
-     mvwprintw(flags ,14,1,  " Sign   : %d", getSign(newMachine));
-     mvwprintw(flags ,15,1,  " Zero   : %d", getZero(newMachine));
-     mvwprintw(flags ,16,1,  " AC     : %d", getAC(newMachine));
-     mvwprintw(flags ,17,1,  " Parity : %d", getParity(newMachine));
-     mvwprintw(flags ,18,1,  " Carry  : %d", getCarry(newMachine));
+     mvwprintw(flags ,14,1,  " Sign   : %d", getSign(newMachine) != 0);
+     mvwprintw(flags ,15,1,  " Zero   : %d", getZero(newMachine) != 0);
+     mvwprintw(flags ,16,1,  " AC     : %d", getAC(newMachine) != 0);
+     mvwprintw(flags ,17,1,  " Parity : %d", getParity(newMachine) != 0);
+     mvwprintw(flags ,18,1,  " Carry  : %d", getCarry(newMachine) != 0);
      wrefresh(flags);
      mvwprintw(uPM ,26,3, " .__ .__..__ .__.. ");
      mvwprintw(uPM ,27,3, "[ __|  |[__)[__]|   ");
@@ -49,7 +49,7 @@ bool runProgram(WINDOW* flags, WINDOW * uPM, WINDOW *instre, char *fileName){
      mvwprintw(instre ,1,1, " --Opcode/Memory--");
      box(instre, 0,0);
      for(int i = 0; i < 17; i++){
-        mvwprintw(instre ,4+i,1, "0x%02x 0x%02x 0x%02x 0x%02x ", newMachine->memory[i],newMachine->memory[i+1], newMachine->memory[i+2], 0xff);
+        mvwprintw(instre ,4+i,1, "0x%02x 0x%02x 0x%02x 0x%02x ", newMachine->memory[i],newMachine->memory[i+1], newMachine->memory[i+2],newMachine->memory[i+3]);
      }
      wrefresh(instre);
      return true;
