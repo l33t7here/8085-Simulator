@@ -277,7 +277,7 @@ static void resetCarry(_8085MP *Machine){
     // Position Of Carry Flag
     Machine->flag = Machine->flag & 0xFE;
 }
-static data getCarry(_8085MP *Machine){
+data getCarry(_8085MP *Machine){
     return Machine->flag & 0x01;
 }
 
@@ -289,7 +289,7 @@ static void resetParity(_8085MP *Machine){
     // Position Of Carry Flag
     Machine->flag = Machine->flag & 0xFB;
 }
-static data getParity(_8085MP *Machine){
+data getParity(_8085MP *Machine){
     return Machine->flag & 0x04;
 }
 
@@ -301,7 +301,7 @@ static void resetAC(_8085MP *Machine){
     // Position Of Carry Flag
     Machine->flag = Machine->flag & 0xEF;
 }
-static data getAC(_8085MP *Machine){
+data getAC(_8085MP *Machine){
     return Machine->flag & 0x10;
 }
 
@@ -313,7 +313,7 @@ static void resetZero(_8085MP *Machine){
     // Position Of Carry Flag
     Machine->flag = Machine->flag & 0xBF;
 }
-static data getZero(_8085MP *Machine){
+data getZero(_8085MP *Machine){
     return Machine->flag & 0x40;
 }
 
@@ -325,7 +325,7 @@ static void resetSign(_8085MP *Machine){
     // Position Of Carry Flag
     Machine->flag = Machine->flag & 0x7F;
 }
-static data getSign(_8085MP *Machine){
+data getSign(_8085MP *Machine){
     return Machine->flag & 0x80;
 }
 
@@ -390,7 +390,7 @@ static instruction_set allInstruction[0x100] = {
     {dad_b}, //0x09
     {ldax_b}, //0x0a
     {dcx_b}, //0x0b
-    {inr_c}, //0x0c
+    {inr_c}, //0x0cE
     {dcr_c}, //0x0d
     {mvi_c}, //0x0e
     {rrc}, //0x0f
@@ -1867,11 +1867,9 @@ static bool rst_7(_8085MP *Machine){
     return true;
 }
 static bool invalid(_8085MP *Machine){
-    printf("Invalid OpCode");
     return false;
 }
 static bool hlt(_8085MP *Machine){
-    printf("Program Terminated Successfull\n");
     return false;
 }
 
@@ -1879,7 +1877,7 @@ static bool hlt(_8085MP *Machine){
 static void starttup(_8085MP *Machine, address start){
     Machine->instruction_register = start;
     Machine->pc = start + 0x01;
-    Machine->sp = 0x00ff;
+    Machine->sp = 0xffff;
 }
 static data getoperand(_8085MP *Machine){
     return Machine->memory[Machine->pc++];
@@ -1956,6 +1954,7 @@ _8085MP* createNewMachine(){
     newMachine->pc = 0;
     newMachine->sp = 0;
     // newMachine->memory[0xffff];
+    newMachine->memory[0x0ffff] = 0x76;
     return newMachine;
 }
 
@@ -1963,23 +1962,7 @@ bool execute(_8085MP *machine, address start_address){
     starttup(machine, start_address);
     bool ranSuccessfully = false;
     do{ 
-        
         ranSuccessfully = allInstruction[machine->memory[machine->instruction_register]].func(machine);
         machine->instruction_register = machine->pc++;
     }while(ranSuccessfully);
-}
-int main(){
-    _8085MP *newMachine = createNewMachine();
-    
-    
-    newMachine->memory[0x0000]=0x3E;
-    newMachine->memory[0x0001]=0xff;
-    newMachine->memory[0x0002]=0x3D;
-    newMachine->memory[0x0003]=0xC2;
-    newMachine->memory[0x0004]=0x02;
-    newMachine->memory[0x0005]=0x00;
-    newMachine->memory[0x0006]=0x76;
-    execute(newMachine, 0x0000);
-    printf("%x", newMachine->a);
-    return 0;
 }

@@ -1,3 +1,4 @@
+#include <stdbool.h>
 typedef unsigned char data;
 typedef unsigned short address;
 
@@ -25,4 +26,9 @@ typedef struct _8085MP{
 // To Handle That We Have Used Address stuff
 // Here Address Representing 16 Bit Data
 _8085MP* createNewMachine();
+data getCarry(_8085MP *Machine);
+data getParity(_8085MP *Machine);
+data getSign(_8085MP *Machine);
+data getZero(_8085MP *Machine);
+data getAC(_8085MP *Machine);
 bool execute(_8085MP *machine, address start_address);
