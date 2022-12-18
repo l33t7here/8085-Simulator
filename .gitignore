@@ -1,1 +1,9 @@
-*.out
+*
+!assembler.py
+!.gitignore
+!c_tui.c
+!makefile
+!microProcessor.c
+!micrProcessor.h
+!README.md
+!mainScreen.png

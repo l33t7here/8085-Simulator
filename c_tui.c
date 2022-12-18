@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include "microProcessor.h"
 #include <signal.h>
+#include <string.h>
 bool loadMachine(_8085MP *machine, char *fileName){
     FILE *AsmFile = fopen(fileName, "r");
     char c;
@@ -93,7 +94,7 @@ char * takeFileName(WINDOW *uPM, char *fileName){
 void handle_resize(){
    doupdate();
 }
-int main() {
+int main(int argc, char * argv[]) {
     initscr();
     signal(SIGWINCH, handle_resize);
     start_color();
@@ -115,7 +116,13 @@ int main() {
     mvwprintw(uPM ,27,3, "");
     // mvwscanw(uPM, 26, 4, "Enter File Name : %s", fileName);
     wrefresh(uPM);
-    takeFileName(uPM, fileName);
+    if (argc == 1) takeFileName(uPM, fileName);
+    else {
+	    strcpy(fileName, argv[1]);
+	    FILE *f = fopen(fileName, "r");
+	    if (!f) takeFileName(uPM, fileName);
+    }
+
     curs_set(0);
     refresh();
     if(runProgram(flags, uPM, instre,fileName)){
@@ -128,4 +135,3 @@ int main() {
     endwin();
     return 0;
 }
-
